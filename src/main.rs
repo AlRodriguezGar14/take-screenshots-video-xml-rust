@@ -184,6 +184,6 @@ fn main() {
     for handle in handles {
         handle.join().unwrap();
     }
-    exit(0);
+    return;
 
 }
