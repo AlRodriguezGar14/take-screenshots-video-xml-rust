@@ -1,7 +1,7 @@
 use serde_json::Value;
 use std::collections::HashMap;
 use std::fs;
-use std::io::{BufRead, BufReader};
+use std::io::{self, Write, BufRead, BufReader};
 use std::process::{Command, Stdio};
 use std::sync::{Arc, Mutex};
 use xml::reader::{EventReader, XmlEvent};
@@ -104,21 +104,29 @@ fn generate_preview_image(input_video: &str, timecode: String, output_folder: Ar
         .arg("-ss").arg(timecode.clone())
         .arg("-i").arg(input_video)
         .arg("-frames:v").arg("1")
-        .arg("-threads").arg("8") // Example of using 8 threads
-        .arg("-vf").arg(format!("scale='min(640\\,iw):-1'"))
+        .arg("-y")
         .arg(&output_image)
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
-        .spawn()
+        // .stdout(Stdio::piped())
+        // .stderr(Stdio::piped())
+        .output()
         .expect("failed to execute process");
+
+    // io::stdout().write_all(&cmd.stdout).unwrap();
+
     
-    let output = cmd.wait_with_output().unwrap();
-    if !output.status.success() {
-        let stderr = String::from_utf8(output.stderr).unwrap();
-        println!("Error: {}", stderr);
-    } else {
+    if cmd.status.success() {
         println!("Printed the preview image for {}", timecode);
+    } else {
+        println!("Oops, something went wrong");
+        io::stderr().write_all(&cmd.stderr).unwrap();
     }
+    // let output = cmd.wait_with_output().unwrap();
+    // if !output.status.success() {
+    //     let stderr = String::from_utf8(output.stderr).unwrap();
+    //     println!("Error: {}", stderr);
+    // } else {
+    //     println!("Printed the preview image for {}", timecode);
+    // }
 
 }
 
