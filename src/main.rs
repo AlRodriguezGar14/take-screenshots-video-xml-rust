@@ -6,6 +6,7 @@ use std::process::{Command, Stdio};
 use std::sync::{Arc, Mutex};
 use xml::reader::{EventReader, XmlEvent};
 use vtc::{Timecode, rates};
+use std::process::exit;
 
 
 fn get_video_metadata(input_video: &str) -> HashMap<String, Value> {
@@ -26,7 +27,10 @@ fn get_video_metadata(input_video: &str) -> HashMap<String, Value> {
 
 
 fn extract_frame_rate(metadata: &HashMap<String, Value>) -> i32 {
-    let frame_rate_str = metadata["streams"][0]["r_frame_rate"].as_str().unwrap();
+    let mut frame_rate_str = metadata["streams"][0]["r_frame_rate"].as_str().unwrap();
+    if frame_rate_str == "0/0" {
+        frame_rate_str =  metadata["streams"][1]["r_frame_rate"].as_str().unwrap();
+    }
     let fps: i32;
 
     if frame_rate_str.contains("/") {
@@ -180,5 +184,6 @@ fn main() {
     for handle in handles {
         handle.join().unwrap();
     }
+    exit(0);
 
 }
